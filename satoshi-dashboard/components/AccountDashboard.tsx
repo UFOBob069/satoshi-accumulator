@@ -148,6 +148,10 @@ export default function AccountDashboard() {
           No positions found. The bot hasn't accumulated any Bitcoin yet.
         </div>
       )}
+
+      <p className="text-xs mt-1">
+        This dashboard isn&apos;t financial advice. Use at your own risk.
+      </p>
     </div>
   );
 } 

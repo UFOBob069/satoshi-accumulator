@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 // Add proper types instead of any
 interface AlpacaError {
   message: string;
-  code?: number;
+  code: number;
 }
 
 interface AlpacaPosition {
@@ -18,22 +18,22 @@ interface AlpacaPosition {
   change_today: number;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     // Use fetch instead of the Alpaca SDK to avoid Node.js module issues
     const response = await fetch('https://paper-api.alpaca.markets/v2/positions', {
       headers: {
         'APCA-API-KEY-ID': process.env.ALPACA_API_KEY || '',
-        'APCA-API-SECRET-KEY': process.env.ALPACA_SECRET_KEY || '',
+        'APCA-API-SECRET-KEY': process.env.ALPACA_API_SECRET || '',
       },
     });
 
     if (!response.ok) {
-      const error: AlpacaError = await response.json();
+      const error = await response.json() as AlpacaError;
       return NextResponse.json({ error: error.message }, { status: response.status });
     }
 
-    const positions: AlpacaPosition[] = await response.json();
+    const positions = await response.json() as AlpacaPosition[];
     
     const formattedPositions = positions.map((position: AlpacaPosition) => ({
       symbol: position.symbol,
@@ -48,11 +48,8 @@ export async function GET() {
     }));
 
     return NextResponse.json(formattedPositions);
-  } catch (error: any) {
-    console.error('Error fetching positions:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch positions' },
-      { status: 500 }
-    );
+  } catch (error) {
+    const err = error as Error;
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 } 
