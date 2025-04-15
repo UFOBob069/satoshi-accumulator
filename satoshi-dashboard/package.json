@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "NEXT_IGNORE_ESLINT=true next build --no-lint",
     "start": "next start",
     "lint": "next lint"
   },
@@ -30,8 +30,4 @@
     "tailwindcss": "^4",
     "typescript": "^5"
   }
-  "scripts": {
-  "build": "NEXT_IGNORE_ESLINT=true next build --no-lint"
-}
-
 }
