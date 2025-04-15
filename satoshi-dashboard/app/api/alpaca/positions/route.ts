@@ -1,5 +1,23 @@
 import { NextResponse } from 'next/server';
 
+// Add proper types instead of any
+interface AlpacaError {
+  message: string;
+  code?: number;
+}
+
+interface AlpacaPosition {
+  symbol: string;
+  qty: number;
+  market_value: number;
+  cost_basis: number;
+  unrealized_pl: number;
+  unrealized_plpc: number;
+  current_price: number;
+  lastday_price: number;
+  change_today: number;
+}
+
 export async function GET() {
   try {
     // Use fetch instead of the Alpaca SDK to avoid Node.js module issues
@@ -11,22 +29,22 @@ export async function GET() {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to fetch positions');
+      const error: AlpacaError = await response.json();
+      return NextResponse.json({ error: error.message }, { status: response.status });
     }
 
-    const positions = await response.json();
+    const positions: AlpacaPosition[] = await response.json();
     
-    const formattedPositions = positions.map((position: any) => ({
+    const formattedPositions = positions.map((position: AlpacaPosition) => ({
       symbol: position.symbol,
-      qty: parseFloat(position.qty),
-      market_value: parseFloat(position.market_value),
-      cost_basis: parseFloat(position.cost_basis),
-      unrealized_pl: parseFloat(position.unrealized_pl),
-      unrealized_plpc: parseFloat(position.unrealized_plpc),
-      current_price: parseFloat(position.current_price),
-      lastday_price: parseFloat(position.lastday_price),
-      change_today: parseFloat(position.change_today),
+      qty: parseFloat(position.qty.toString()),
+      market_value: parseFloat(position.market_value.toString()),
+      cost_basis: parseFloat(position.cost_basis.toString()),
+      unrealized_pl: parseFloat(position.unrealized_pl.toString()),
+      unrealized_plpc: parseFloat(position.unrealized_plpc.toString()),
+      current_price: parseFloat(position.current_price.toString()),
+      lastday_price: parseFloat(position.lastday_price.toString()),
+      change_today: parseFloat(position.change_today.toString()),
     }));
 
     return NextResponse.json(formattedPositions);
