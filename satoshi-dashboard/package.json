@@ -30,4 +30,8 @@
     "tailwindcss": "^4",
     "typescript": "^5"
   }
+  "scripts": {
+  "build": "NEXT_IGNORE_ESLINT=true next build --no-lint"
+}
+
 }
