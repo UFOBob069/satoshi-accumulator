@@ -37,7 +37,7 @@ export default function AccountDashboard() {
           getAccountInfo(),
           getPositions()
         ]);
-        
+
         setAccountInfo(accountData);
         setPositions(positionsData);
         setLoading(false);
@@ -49,7 +49,6 @@ export default function AccountDashboard() {
     }
 
     fetchData();
-    // Set up interval to refresh data every 5 minutes
     const intervalId = setInterval(fetchData, 300000);
     return () => clearInterval(intervalId);
   }, []);
@@ -79,7 +78,7 @@ export default function AccountDashboard() {
       <h2 className="text-2xl font-bold mb-6 text-orange-500 flex items-center">
         <FaBitcoin className="mr-2" /> Satoshi Accumulator Dashboard
       </h2>
-      
+
       {accountInfo && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-gray-800 p-4 rounded-lg">
@@ -101,7 +100,7 @@ export default function AccountDashboard() {
               </div>
             </div>
           </div>
-          
+
           {btcPosition && (
             <div className="bg-gray-800 p-4 rounded-lg">
               <h3 className="text-lg font-semibold mb-2 text-gray-300 flex items-center">
@@ -123,8 +122,7 @@ export default function AccountDashboard() {
                 <div className="flex justify-between">
                   <span>Profit/Loss:</span>
                   <span className={`font-bold ${btcPosition.unrealized_pl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    ${btcPosition.unrealized_pl.toLocaleString()} 
-                    ({(btcPosition.unrealized_plpc * 100).toFixed(2)}%)
+                    ${btcPosition.unrealized_pl.toLocaleString()} ({(btcPosition.unrealized_plpc * 100).toFixed(2)}%)
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -142,7 +140,7 @@ export default function AccountDashboard() {
           )}
         </div>
       )}
-      
+
       {positions.length === 0 && (
         <div className="text-center py-4 text-gray-400">
           No positions found. The bot hasn't accumulated any Bitcoin yet.
@@ -154,4 +152,4 @@ export default function AccountDashboard() {
       </p>
     </div>
   );
-} 
+}
