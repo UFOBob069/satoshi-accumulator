@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { getAccountInfo, getPositions } from '../lib/alpaca';
+import { getAccountInfo, getPositions, Position } from '../lib/alpaca';
 import { FaBitcoin, FaDollarSign, FaChartLine } from 'react-icons/fa';
 
 interface AccountInfo {
@@ -9,18 +9,6 @@ interface AccountInfo {
   cash: number;
   buying_power: number;
   portfolio_value: number;
-}
-
-interface Position {
-  symbol: string;
-  qty: number;
-  market_value: number;
-  cost_basis: number;
-  unrealized_pl: number;
-  unrealized_plpc: number;
-  current_price: number;
-  lastday_price: number;
-  change_today: number;
 }
 
 export default function AccountDashboard() {
@@ -33,23 +21,29 @@ export default function AccountDashboard() {
     async function fetchData() {
       try {
         setLoading(true);
+        setError(null); // Clear any previous errors
+        
         const [accountData, positionsData] = await Promise.all([
           getAccountInfo(),
           getPositions()
         ]);
         
+        if (accountData === null) {
+          throw new Error('Failed to fetch account data');
+        }
+        
         setAccountInfo(accountData);
-        setPositions(positionsData);
+        setPositions(positionsData || []); // Ensure we always set an array
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching account data:', err);
-        setError('Failed to load account data. Please try again later.');
+        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load data');
+        setPositions([]); // Reset positions on error
         setLoading(false);
       }
     }
 
     fetchData();
-    // Set up interval to refresh data every 5 minutes
     const intervalId = setInterval(fetchData, 300000);
     return () => clearInterval(intervalId);
   }, []);
@@ -79,7 +73,7 @@ export default function AccountDashboard() {
       <h2 className="text-2xl font-bold mb-6 text-orange-500 flex items-center">
         <FaBitcoin className="mr-2" /> Satoshi Accumulator Dashboard
       </h2>
-      
+
       {accountInfo && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-gray-800 p-4 rounded-lg">
@@ -101,7 +95,7 @@ export default function AccountDashboard() {
               </div>
             </div>
           </div>
-          
+
           {btcPosition && (
             <div className="bg-gray-800 p-4 rounded-lg">
               <h3 className="text-lg font-semibold mb-2 text-gray-300 flex items-center">
@@ -110,7 +104,12 @@ export default function AccountDashboard() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Quantity:</span>
-                  <span className="font-bold">{btcPosition.qty.toFixed(8)} BTC</span>
+                  <span className="font-bold">
+                    {typeof btcPosition.qty === 'string' 
+                      ? parseFloat(btcPosition.qty).toFixed(8) 
+                      : btcPosition.qty.toFixed(8)
+                    } BTC
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Current Value:</span>
@@ -123,8 +122,7 @@ export default function AccountDashboard() {
                 <div className="flex justify-between">
                   <span>Profit/Loss:</span>
                   <span className={`font-bold ${btcPosition.unrealized_pl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    ${btcPosition.unrealized_pl.toLocaleString()} 
-                    ({(btcPosition.unrealized_plpc * 100).toFixed(2)}%)
+                    ${btcPosition.unrealized_pl.toLocaleString()} ({(btcPosition.unrealized_plpc * 100).toFixed(2)}%)
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -142,7 +140,7 @@ export default function AccountDashboard() {
           )}
         </div>
       )}
-      
+
       {positions.length === 0 && (
         <div className="text-center py-4 text-gray-400">
           No positions found. The bot hasn't accumulated any Bitcoin yet.
@@ -154,4 +152,4 @@ export default function AccountDashboard() {
       </p>
     </div>
   );
-} 
+}

@@ -1,55 +1,63 @@
 import { NextResponse } from 'next/server';
-
-// Add proper types instead of any
-interface AlpacaError {
-  message: string;
-  code: number;
-}
-
-interface AlpacaPosition {
-  symbol: string;
-  qty: number;
-  market_value: number;
-  cost_basis: number;
-  unrealized_pl: number;
-  unrealized_plpc: number;
-  current_price: number;
-  lastday_price: number;
-  change_today: number;
-}
+import { Position } from '@/lib/alpaca';
 
 export async function GET(request: Request) {
+  const ALPACA_API_KEY = process.env.ALPACA_API_KEY;
+  const ALPACA_SECRET_KEY = process.env.ALPACA_SECRET_KEY;
+
+  // Check if API keys are configured
+  if (!ALPACA_API_KEY || !ALPACA_SECRET_KEY) {
+    console.error('Alpaca API credentials missing');
+    return NextResponse.json(
+      { error: 'API configuration missing' },
+      { status: 500 }
+    );
+  }
+
   try {
-    // Use fetch instead of the Alpaca SDK to avoid Node.js module issues
+    console.log('Fetching positions from Alpaca...'); // Debug log
     const response = await fetch('https://paper-api.alpaca.markets/v2/positions', {
       headers: {
-        'APCA-API-KEY-ID': process.env.ALPACA_API_KEY || '',
-        'APCA-API-SECRET-KEY': process.env.ALPACA_API_SECRET || '',
+        'APCA-API-KEY-ID': ALPACA_API_KEY,
+        'APCA-API-SECRET-KEY': ALPACA_SECRET_KEY,
+        'Accept': 'application/json',
       },
     });
 
+    const responseData = await response.json();
+    console.log('Alpaca API response:', response.status, responseData); // Debug log
+
     if (!response.ok) {
-      const error = await response.json() as AlpacaError;
-      return NextResponse.json({ error: error.message }, { status: response.status });
+      return NextResponse.json(
+        { error: responseData.message || 'Failed to fetch positions' },
+        { status: response.status }
+      );
     }
 
-    const positions = await response.json() as AlpacaPosition[];
-    
-    const formattedPositions = positions.map((position: AlpacaPosition) => ({
-      symbol: position.symbol,
-      qty: parseFloat(position.qty.toString()),
-      market_value: parseFloat(position.market_value.toString()),
-      cost_basis: parseFloat(position.cost_basis.toString()),
-      unrealized_pl: parseFloat(position.unrealized_pl.toString()),
-      unrealized_plpc: parseFloat(position.unrealized_plpc.toString()),
-      current_price: parseFloat(position.current_price.toString()),
-      lastday_price: parseFloat(position.lastday_price.toString()),
-      change_today: parseFloat(position.change_today.toString()),
+    // If no positions, return empty array instead of error
+    if (!responseData || !Array.isArray(responseData)) {
+      console.log('No positions found or invalid response format');
+      return NextResponse.json([]);
+    }
+
+    const positions = responseData.map(p => ({
+      symbol: String(p.symbol),
+      qty: Number(p.qty),
+      market_value: Number(p.market_value),
+      cost_basis: Number(p.cost_basis),
+      unrealized_pl: Number(p.unrealized_pl),
+      unrealized_plpc: Number(p.unrealized_plpc),
+      current_price: Number(p.current_price),
+      lastday_price: Number(p.lastday_price),
+      change_today: Number(p.change_today),
     }));
 
-    return NextResponse.json(formattedPositions);
+    return NextResponse.json(positions);
   } catch (error) {
-    const err = error as Error;
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('Error fetching positions:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch positions' },
+      { status: 500 }
+    );
   }
-} 
+}
