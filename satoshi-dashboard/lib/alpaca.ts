@@ -1,41 +1,36 @@
 export async function getAccountInfo() {
   try {
-    const response = await fetch('/api/alpaca/account', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const res = await fetch('/api/alpaca/account');
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch account info');
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error('Failed to fetch account info:', data);
+      return null;
     }
 
-    return await response.json();
+    return data;
   } catch (error) {
-    console.error('Error fetching account info:', error);
+    console.error('Fetch error (account):', error);
     return null;
   }
 }
 
 export async function getPositions() {
   try {
-    const response = await fetch('/api/alpaca/positions', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const res = await fetch('/api/alpaca/positions');
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch positions');
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error('Failed to fetch positions:', data);
+      return [];
     }
 
-    return await response.json();
+    console.log('✅ Fetched positions:', data);
+    return data;
   } catch (error) {
-    console.error('Error fetching positions:', error);
+    console.error('Fetch error (positions):', error);
     return [];
   }
-} 
+}
