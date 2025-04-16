@@ -13,14 +13,14 @@ interface AccountInfo {
 
 interface Position {
   symbol: string;
-  qty: string;
-  market_value: string;
-  cost_basis: string;
-  unrealized_pl: string;
-  unrealized_plpc: string;
-  current_price: string;
-  lastday_price: string;
-  change_today: string;
+  qty: number;
+  market_value: number;
+  cost_basis: number;
+  unrealized_pl: number;
+  unrealized_plpc: number;
+  current_price: number;
+  lastday_price: number;
+  change_today: number;
 }
 
 export default function AccountDashboard() {
