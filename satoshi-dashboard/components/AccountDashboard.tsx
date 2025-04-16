@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { getAccountInfo, getPositions } from '../lib/alpaca';
+import { getAccountInfo, getPositions, Position } from '../lib/alpaca';
 import { FaBitcoin, FaDollarSign, FaChartLine } from 'react-icons/fa';
 
 interface AccountInfo {
@@ -9,18 +9,6 @@ interface AccountInfo {
   cash: number;
   buying_power: number;
   portfolio_value: number;
-}
-
-interface Position {
-  symbol: string;
-  qty: number;
-  market_value: number;
-  cost_basis: number;
-  unrealized_pl: number;
-  unrealized_plpc: number;
-  current_price: number;
-  lastday_price: number;
-  change_today: number;
 }
 
 export default function AccountDashboard() {
