@@ -16,21 +16,19 @@ export async function getAccountInfo() {
   }
 }
 
-export async function getPositions() {
-  try {
-    const res = await fetch('/api/alpaca/positions');
+export async function getPositions(): Promise<Position[]> {
+  const res = await fetch('/api/alpaca/positions');
+  const raw = await res.json();
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error('Failed to fetch positions:', data);
-      return [];
-    }
-
-    console.log('✅ Fetched positions:', data);
-    return data;
-  } catch (error) {
-    console.error('Fetch error (positions):', error);
-    return [];
-  }
+  return raw.map((p: any) => ({
+    ...p,
+    qty: parseFloat(p.qty),
+    market_value: parseFloat(p.market_value),
+    cost_basis: parseFloat(p.cost_basis),
+    unrealized_pl: parseFloat(p.unrealized_pl),
+    unrealized_plpc: parseFloat(p.unrealized_plpc),
+    current_price: parseFloat(p.current_price),
+    lastday_price: parseFloat(p.lastday_price),
+    change_today: parseFloat(p.change_today),
+  }));
 }
