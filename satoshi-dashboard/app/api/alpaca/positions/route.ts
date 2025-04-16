@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-// Add proper types instead of any
 interface AlpacaError {
   message: string;
   code: number;
@@ -8,48 +7,51 @@ interface AlpacaError {
 
 interface AlpacaPosition {
   symbol: string;
-  qty: number;
-  market_value: number;
-  cost_basis: number;
-  unrealized_pl: number;
-  unrealized_plpc: number;
-  current_price: number;
-  lastday_price: number;
-  change_today: number;
+  qty: string; // Alpaca returns string values for numbers
+  market_value: string;
+  cost_basis: string;
+  unrealized_pl: string;
+  unrealized_plpc: string;
+  current_price: string;
+  lastday_price: string;
+  change_today: string;
 }
 
-export async function GET(request: Request) {
+export async function GET() {
+  const ALPACA_API_KEY = process.env.ALPACA_API_KEY;
+  const ALPACA_SECRET_KEY = process.env.ALPACA_SECRET_KEY;
+
+  if (!ALPACA_API_KEY || !ALPACA_SECRET_KEY) {
+    console.error("❌ Missing Alpaca API credentials");
+    return NextResponse.json(
+      { error: 'Alpaca API credentials not configured' },
+      { status: 500 }
+    );
+  }
+
   try {
-    // Use fetch instead of the Alpaca SDK to avoid Node.js module issues
     const response = await fetch('https://paper-api.alpaca.markets/v2/positions', {
       headers: {
-        'APCA-API-KEY-ID': process.env.ALPACA_API_KEY || '',
-        'APCA-API-SECRET-KEY': process.env.ALPACA_API_SECRET || '',
+        'APCA-API-KEY-ID': ALPACA_API_KEY,
+        'APCA-API-SECRET-KEY': ALPACA_SECRET_KEY,
       },
     });
 
+    console.log("📡 Alpaca response status:", response.status);
+
     if (!response.ok) {
-      const error = await response.json() as AlpacaError;
+      const error: AlpacaError = await response.json();
+      console.error("❌ Alpaca API error:", error);
       return NextResponse.json({ error: error.message }, { status: response.status });
     }
 
-    const positions = await response.json() as AlpacaPosition[];
-    
-    const formattedPositions = positions.map((position: AlpacaPosition) => ({
-      symbol: position.symbol,
-      qty: parseFloat(position.qty.toString()),
-      market_value: parseFloat(position.market_value.toString()),
-      cost_basis: parseFloat(position.cost_basis.toString()),
-      unrealized_pl: parseFloat(position.unrealized_pl.toString()),
-      unrealized_plpc: parseFloat(position.unrealized_plpc.toString()),
-      current_price: parseFloat(position.current_price.toString()),
-      lastday_price: parseFloat(position.lastday_price.toString()),
-      change_today: parseFloat(position.change_today.toString()),
-    }));
+    const positions: AlpacaPosition[] = await response.json();
+    console.log("✅ Positions fetched:", positions.length);
 
-    return NextResponse.json(formattedPositions);
-  } catch (error) {
-    const err = error as Error;
+    return NextResponse.json(positions);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error("Unknown error");
+    console.error("🚨 Fetch failed:", err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
-} 
+}
