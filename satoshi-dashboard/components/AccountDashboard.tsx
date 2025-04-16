@@ -31,7 +31,7 @@ export default function AccountDashboard() {
         if (accountData === null) {
           throw new Error('Failed to fetch account data');
         }
-        
+
         setAccountInfo(accountData);
         setPositions(positionsData || []); // Ensure we always set an array
         setLoading(false);

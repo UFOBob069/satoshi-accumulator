@@ -1,15 +1,19 @@
 import { NextResponse } from 'next/server';
 import { Position } from '@/lib/alpaca';
 
+interface AlpacaError {
+  message: string;
+  code: number;
+}
+
 export async function GET(request: Request) {
   const ALPACA_API_KEY = process.env.ALPACA_API_KEY;
   const ALPACA_SECRET_KEY = process.env.ALPACA_SECRET_KEY;
 
-  // Check if API keys are configured
   if (!ALPACA_API_KEY || !ALPACA_SECRET_KEY) {
-    console.error('Alpaca API credentials missing');
+    console.error("❌ Missing Alpaca API credentials");
     return NextResponse.json(
-      { error: 'API configuration missing' },
+      { error: 'Alpaca API credentials not configured' },
       { status: 500 }
     );
   }
